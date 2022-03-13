@@ -39,6 +39,7 @@ typedef struct{
  */
 
 int initialise(file_data* fileData);
+void fileSizer(char* filename, file_data* fileData, int i);
 
 /*
  * Logic and arithmatic functions for scheduling
@@ -69,7 +70,11 @@ int main()
     }
 
     array_size = initialise(fileData);
+    scheduler(fileData, array_size);
 }
+
+
+
 
 int initialise(file_data* fileData)
 {
@@ -113,7 +118,7 @@ int initialise(file_data* fileData)
     return index;
 }
 
-void fileSizer(char* filename, file_data* fileData,int i)
+void fileSizer(char* filename, file_data* fileData, int i)
 {
 
     filename[strlen(filename)-1] = '\0'; //Removes the white space enter that causes errors on file opening
