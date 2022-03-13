@@ -45,7 +45,7 @@ void fileSizer(char* filename, file_data* fileData, int i);
  * Logic and arithmatic functions for scheduling
  */
 
-void scheduler();
+void scheduler(file_data* fileData, int array_size);
 
 
 /*
@@ -73,7 +73,28 @@ int main()
     scheduler(fileData, array_size);
 }
 
+void scheduler(file_data* fileData, int array_size)
+{
+    /*
+     * Init
+     */
 
+    int threads = 10;
+    group indexGroups[threads];
+
+    /*
+     * Memory allocation
+     * fileIndex is huge simply for convenience as efficiency isn't necessary
+     */
+    for(int z = 0; z < threads; z++)
+    {
+        indexGroups[z].groupSize = (size_t)malloc(sizeof(int) * array_size);
+        for(int y = 0; y < 10000; y++)
+        {
+            indexGroups[z].fileIndexs[y] = (size_t)malloc(sizeof(int));
+        }
+    }
+}
 
 
 int initialise(file_data* fileData)
