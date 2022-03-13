@@ -49,6 +49,9 @@ void scheduler(file_data* fileData, int array_size);
 void sortDatabySize(file_data* fileData, int low, int high);
 int partition(file_data* fileData, int low, int high);
 void swapFileData(file_data* x, file_data* y);
+void fileStackCreator(file_data* fileData, int threads, group* indexGroups, int array_size);
+int smallestGroup(file_data* fileData, group* indexGroups, int threads);
+int sumSize(file_data* fileData, int groupSizeBreakdown[], int groupSize);
 
 /*
  * Main
@@ -103,7 +106,93 @@ void scheduler(file_data* fileData, int array_size)
 
     //Sorts the data in order of size biggest first as it's easier to match a big file with smaller files (Quicksort)
     sortDatabySize(fileData, 0, array_size);
+
+    //organise the data into stacks = amount of threads these will be the assignments of the threads
+    fileStackCreator(fileData, threads, indexGroups, array_size);
+
+
+    /*
+     * Printing the path allocations for visuals as not actually assigning them to anything
+     */
+
+    int total_files = 0;
+    for(int i = 0; i < threads; i++)
+    {
+        printf("Thread %d has group size %d and works on the following file paths : \n", i, indexGroups[i].groupSize);
+        for(int j = 0; j < indexGroups[i].groupSize; j++)
+        {
+            printf("%s\n", fileData[indexGroups[i].fileIndexs[j]].fileName);
+        }
+        total_files += indexGroups[i].groupSize;
+    }
+    printf("The total paths allocated is : %d\n", total_files);
+
 }
+
+/*
+ * File stack creator goes through the sorted file_data struct and allocates files biggest to smallest. To do this it
+ * uses a utility function that returns the current smallest thread grouping using the fileSizes.
+ */
+
+void fileStackCreator(file_data* fileData, int threads, group* indexGroups, int array_size)
+{
+    /*
+     * First we initialise the thread groupings biggest files are found at the end of the sort hence line 165
+     */
+    int smallestGroupIndex;
+    for(int i = 0; i < threads; i++)
+    {
+        indexGroups[i].fileIndexs[0] = array_size - i;
+        indexGroups[i].groupSize = 1;
+    }
+    /*
+     * We then loop through each index in the file_data struct and assign it to the current smallest group this group
+     * then becomes larger due to the added file and potentially a different group becomes the smallest
+     */
+    for(int j = array_size - threads; j > -1; j--)
+    {
+        smallestGroupIndex = smallestGroup(fileData, indexGroups, threads);
+        indexGroups[smallestGroupIndex].fileIndexs[indexGroups[smallestGroupIndex].groupSize] = j;
+        indexGroups[smallestGroupIndex].groupSize++;
+    }
+
+    return;
+}
+
+/*
+ * Goes through the assigned groups given and returns which one has the smallest absolute size
+ */
+
+int smallestGroup(file_data* fileData, group* indexGroups, int threads)
+{
+    int groupSumSizes[threads];
+    int smallestGroup = 0;
+    for(int i = 0; i < threads; i++)
+    {
+        groupSumSizes[i] = sumSize(fileData, indexGroups[i].fileIndexs, indexGroups[i].groupSize);
+        if(groupSumSizes[i] < groupSumSizes[smallestGroup])
+        {
+            smallestGroup = i;
+        }
+    }
+    return smallestGroup;
+}
+
+/*
+ * Utility function for smallestGroup sums the size of all the files in a given grouping
+ */
+
+int sumSize(file_data* fileData, int groupSizeBreakdown[], int groupSize)
+{
+    int size = 0;
+    for(int i = 0; i < groupSize; i++)
+    {
+        int index = groupSizeBreakdown[i];
+        size = size + fileData[index].fileSize;
+    }
+    return size;
+}
+
 
 /*
  * Quicksort algorithm to sort the file_data struct conveniently
