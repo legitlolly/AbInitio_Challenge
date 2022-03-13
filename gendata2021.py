@@ -17,9 +17,9 @@ import os
 Generate test CSV files in the current working directory.
 Each file will have a different (random) number of records.
 """
-NUM_FILES = 10
-MIN_FILE_LENGTH = 1
-MAX_FILE_LENGTH = 10
+NUM_FILES = 100
+MIN_FILE_LENGTH = 1000
+MAX_FILE_LENGTH = 10000
 MAX_CUST_ID = 100000
 
 transid = 0

@@ -46,7 +46,9 @@ void fileSizer(char* filename, file_data* fileData, int i);
  */
 
 void scheduler(file_data* fileData, int array_size);
-
+void sortDatabySize(file_data* fileData, int low, int high);
+int partition(file_data* fileData, int low, int high);
+void swapFileData(file_data* x, file_data* y);
 
 /*
  * Main
@@ -73,6 +75,10 @@ int main()
     scheduler(fileData, array_size);
 }
 
+
+/*
+ * Uses utility functions and logic to "assign" threads a list of paths that point to csv files to "process"
+ */
 void scheduler(file_data* fileData, int array_size)
 {
     /*
@@ -94,8 +100,62 @@ void scheduler(file_data* fileData, int array_size)
             indexGroups[z].fileIndexs[y] = (size_t)malloc(sizeof(int));
         }
     }
+
+    //Sorts the data in order of size biggest first as it's easier to match a big file with smaller files (Quicksort)
+    sortDatabySize(fileData, 0, array_size);
 }
 
+/*
+ * Quicksort algorithm to sort the file_data struct conveniently
+ */
+
+void sortDatabySize(file_data* fileData, int low, int high)
+{
+    if(low < high)
+    {
+        int index = partition(fileData, low, high);
+        sortDatabySize(fileData, low, index - 1);
+        sortDatabySize(fileData, index + 1, high);
+    }
+}
+
+/*
+ * Quicksort utility
+ */
+
+int partition(file_data* fileData, int low, int high)
+{
+    int pivot = fileData[high].fileSize;
+    int i = (low - 1);
+
+    for(int j = low; j < high; j++)
+    {
+        if(fileData[j].fileSize < pivot)
+        {
+            i++;
+            swapFileData(&fileData[i], &fileData[j]);
+        }
+    }
+    swapFileData(&fileData[i+1], &fileData[high]);
+    return(i + 1);
+}
+
+/*
+ * Quicksort utility
+ */
+
+void swapFileData(file_data* x, file_data* y)
+{
+    file_data z = *x;
+    *x = *y;
+    *y = z;
+    return;
+}
+
+
+/*
+ * Initialises the CSV data into the file_data struct
+ */
 
 int initialise(file_data* fileData)
 {
@@ -138,6 +198,10 @@ int initialise(file_data* fileData)
 
     return index;
 }
+
+/*
+ * Takes a filename and assigns it to its own instance of file_data struct also takes its size for .fileSize
+ */
 
 void fileSizer(char* filename, file_data* fileData, int i)
 {
